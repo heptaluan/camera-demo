@@ -5,185 +5,33 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-      }
-
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-      }
-
-      html,
-      button,
-      input,
-      select,
-      textarea {
-        color: #222;
-      }
-
-      ::-moz-selection {
-        background: #b3d4fc;
-        text-shadow: none;
-      }
-
-      ::selection {
-        background: #b3d4fc;
-        text-shadow: none;
-      }
-
-      img {
-        vertical-align: middle;
-      }
-
-      fieldset {
-        border: 0;
-        margin: 0;
-        padding: 0;
-      }
-
-      textarea {
-        resize: vertical;
-      }
-
-      main {
-        width: 1920px;
-        height: 100%;
-      }
-
-      .l {
-        width: 450px;
-        height: 100%;
-        padding: 0 40px;
-        display: inline-block;
-      }
-
-      .r {
-        width: 850px;
-        height: 850px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 80px 40px;
-        display: inline-block;
-      }
-
-      .r .box {
-        width: 1920px;
-        height: 1080px;
-        border: 1px solid #333;
-        position: relative;
-      }
-
-      video,
-      canvas,
-      .canvas-img,
-      #loading {
-        position: absolute;
-        left: 0;
-        top: 0;
-      }
-
-      video {
-        z-index: 9;
-      }
-
-      canvas {
-        display: none;
-        z-index: 9;
-      }
-
-      .canvas-img {
-        width: 1920px;
-        height: 1080px;
-      }
-
-      .canvas-img img {
-        width: 100%;
-        height: 100%;
-      }
-
-      #loading {
-        z-index: 999;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        display: none;
-      }
-
-      button,
-      label {
-        width: 90px;
-        height: 35px;
-        line-height: 35px;
-        text-align: center;
-        display: inline-block;
-        background: transparent;
-        border: 1px solid #999;
-        outline: none;
-        margin-right: 25px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      button:disabled {
-        color: rgba(0, 0, 0, 0.25);
-        background-color: #f5f5f5;
-        border-color: #d9d9d9;
-        text-shadow: none;
-        box-shadow: none;
-        cursor: not-allowed;
-      }
-
-      .reset {
-        margin-top: 40px;
-      }
-
-      .list {
-        margin-top: 40px;
-        width: 100%;
-        height: 615px;
-        border: 1px solid #333;
-        overflow-y: scroll;
-      }
-
-      .list li {
-        width: 100%;
-        height: 35px;
-        line-height: 35px;
-        padding: 0 15px;
-      }
-    </style>
+    <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
     <main>
-      <div class="l">
-        <div class="bth-group">
-          <button id="save">拍照</button>
-          <button disabled id="parsing">解析</button>
-          <label for="upload">上传</label>
+      <header>头部信息</header>
+
+      <div class="content">
+        <div class="left-box">
+          <div class="button-group">
+            <button id="save">拍照</button>
+            <label for="upload">上传</label>
+            <button disabled id="parsing">解析</button>
+            <button disabled class="reset" id="reset">重置</button>
+            <input id="upload" type="file" accept="image/*" onchange="handleLoadFile(event)" />
+          </div>
+          <div class="list-content">
+            <div class="header">解析列表</div>
+            <ul id="list" class="list"></ul>
+          </div>
         </div>
-        <ul id="list" class="list"></ul>
-
-        <input id="upload" style="visibility: hidden" type="file" accept="image/*" onchange="handleLoadFile(event)" />
-
-        <button disabled class="reset" id="reset">重置</button>
-      </div>
-      <div class="r">
-        <div class="box">
-          <video id="video" width="1920" height="1080" autoplay></video>
-          <canvas id="canvas" width="1920" height="1080"></canvas>
+        <div class="right-box">
+          <video id="video" style="object-fit: fill" autoplay></video>
+          <canvas id="canvas" style="position: absolute; left: 9999px; right: 9999px"></canvas>
           <div class="canvas-img">
             <img id="boxImg" />
           </div>
-          <div id="loading"><span>解析中，请稍等……</span></div>
+          <div id="loading"><span>解析中，请稍后……</span></div>
         </div>
       </div>
     </main>
@@ -199,11 +47,36 @@
       const boxImg = document.getElementById('boxImg')
       const list = document.getElementById('list')
       const loading = document.getElementById('loading')
+      const upload = document.getElementById('upload')
 
       const api = `http://192.168.11.99:5000`
       const getImageUrl = `${api}/getImage`
       const getListUrl = `${api}/getList`
       const updateImageUrl = `${api}/imageprocess`
+
+      const videoW = document.querySelector('.right-box').offsetWidth
+      const videoH = document.querySelector('.right-box').offsetHeight
+
+      aVideo.width = videoW
+      aVideo.height = videoH
+      canvas.width = videoW
+      canvas.height = videoH
+
+      initVideoStyle()
+
+      window.onresize = function () {
+        initVideoStyle()
+      }
+
+      function initVideoStyle() {
+        const videoW = document.querySelector('.right-box').offsetWidth
+        const videoH = document.querySelector('.right-box').offsetHeight
+
+        aVideo.width = videoW
+        aVideo.height = videoH
+        canvas.width = videoW
+        canvas.height = videoH
+      }
 
       // chrome://flags/#unsafely-treat-insecure-origin-as-secure
 
@@ -258,6 +131,7 @@
       }
 
       const formatData = str => {
+        list.innerHTML = ''
         const fragment = document.createDocumentFragment()
         const arr = str.split(',')
         const num = Number(str.split(',').pop().split(':')[0]) + 1
@@ -269,7 +143,7 @@
             }
           }
           if (item.innerHTML === '') {
-            item.innerHTML = `${i}: -`
+            item.innerHTML = `${i}:-`
           }
           fragment.appendChild(item)
         }
@@ -294,38 +168,14 @@
         })
       }
 
-      // 拍照
-      // saveBtn.addEventListener('click', function () {
-      //   getJSON(getImageUrl)
-      //     .then(res => {
-      //       const data = JSON.parse(res)
-      //       if (data.Message === 'Success') {
-      //         video.style.display = 'none'
-      //         boxImg.setAttribute('src', `${api}/${data.Data}`)
-      //         parsingBtn.disabled = ''
-      //         resetBtn.disabled = ''
-      //       } else {
-      //         alert(`请求失败，请重新尝试`)
-      //       }
-      //     })
-      //     .catch(err => {
-      //       console.log(err)
-      //       alert(`请求失败，请重新尝试`)
-      //     })
-      // })
-
-      // 上传文件
+      // 手动上传文件
       const handleLoadFile = e => {
         let file = e.target.files[0]
 
         const reader = new FileReader()
         reader.readAsDataURL(file)
         reader.onload = function (e) {
-          var img = new Image()
-          img.src = this.result
-          img.onload = function () {
-            ctx.drawImage(img, 0, 0, 1920, 1080)
-          }
+          boxImg.setAttribute('src', e.target.result)
         }
 
         const formData = new FormData()
@@ -339,11 +189,13 @@
               const data = JSON.parse(this.response)
               if (data.Code === '200') {
                 alert(`图片上传成功`)
+                saveBtn.disabled = 'disabled'
               }
             } else {
               var resJson = { code: this.status, response: this.response }
               console.log(resJson)
               alert(`图片上传失败，请刷新后重新尝试`)
+              handleReset()
             }
           }
         }
@@ -352,40 +204,44 @@
         parsingBtn.disabled = ''
         resetBtn.disabled = ''
         video.style.display = 'none'
-        canvas.style.display = 'block'
+        upload.value = ''
       }
 
+      // 拍照
       saveBtn.addEventListener('click', function () {
-        ctx.drawImage(aVideo, 0, 0, 1920, 1080)
-        const base64 = canvas.toDataURL('image/png', 1)
+        const videoW = document.querySelector('.right-box').offsetWidth
+        const videoH = document.querySelector('.right-box').offsetHeight
+        ctx.drawImage(aVideo, 0, 0, videoW, videoH)
+        const base64 = canvas.toDataURL('image/png')
+        boxImg.setAttribute('src', base64)
 
         const data = dataUrlToBlob(canvas.toDataURL('image/png', 1))
-
         const formData = new FormData()
         formData.append('image', data)
 
         const xhr = new XMLHttpRequest()
+
+        video.style.display = 'none'
+
         xhr.open('POST', updateImageUrl, true)
         xhr.onreadystatechange = function (res) {
           if (this.readyState === 4) {
             if (this.status === 200) {
               const data = JSON.parse(this.response)
               if (data.Code === '200') {
+                parsingBtn.disabled = ''
+                resetBtn.disabled = ''
                 alert(`拍照上传成功`)
               }
             } else {
               var resJson = { code: this.status, response: this.response }
               console.log(resJson)
+              handleReset()
               alert(`拍照上传失败，请刷新后重新尝试`)
             }
           }
         }
         xhr.send(formData)
-
-        parsingBtn.disabled = ''
-        resetBtn.disabled = ''
-        video.style.display = 'none'
-        canvas.style.display = 'block'
       })
 
       // 解析
@@ -395,15 +251,20 @@
           .then(res => {
             const data = JSON.parse(res)
             if (data.Message === 'Success') {
-              formatData(data.Data)
-              loading.style.display = 'none'
-              resetBtn.disabled = ''
-              alert(`图片解析成功`)
-              video.style.display = 'none'
-              canvas.style.display = 'none'
-              boxImg.setAttribute('src', `${api}/${data.image}`)
-              parsingBtn.disabled = ''
-              resetBtn.disabled = ''
+              if (data.Data === '') {
+                alert(`图片解析为空，请检查图片后重新进行尝试`)
+                loading.style.display = 'none'
+                handleReset()
+              } else {
+                formatData(data.Data)
+                loading.style.display = 'none'
+                resetBtn.disabled = ''
+                alert(`图片解析成功`)
+                video.style.display = 'none'
+                boxImg.setAttribute('src', `${api}/${data.image}`)
+                parsingBtn.disabled = ''
+                resetBtn.disabled = ''
+              }
             } else {
               alert(`图片解析失败，请重新尝试`)
             }
@@ -413,17 +274,12 @@
           })
       })
 
-      // 重制
+      // 重置
       resetBtn.addEventListener('click', function () {
-        boxImg.setAttribute('src', '')
-        list.innerHTML = ''
-        resetBtn.disabled = 'disabled'
-        parsingBtn.disabled = 'disabled'
-        canvas.style.display = 'none'
-        video.style.display = 'block'
+        handleReset()
       })
 
-      // base64 转化为文件
+      // base64 转化为 file
       function dataUrlToBlob(base64, mimeType = 'image/png') {
         let bytes = window.atob(base64.split(',')[1])
         let ab = new ArrayBuffer(bytes.length)
@@ -432,6 +288,17 @@
           ia[i] = bytes.charCodeAt(i)
         }
         return new Blob([ab], { type: mimeType })
+      }
+
+      // 重置事件
+      function handleReset() {
+        boxImg.setAttribute('src', '')
+        list.innerHTML = ''
+        saveBtn.disabled = ''
+        resetBtn.disabled = 'disabled'
+        parsingBtn.disabled = 'disabled'
+        video.style.display = 'block'
+        upload.value = ''
       }
     </script>
   </body>
