@@ -22,7 +22,16 @@
           </div>
           <div class="list-content">
             <div class="header">解析列表</div>
-            <ul id="list" class="list"></ul>
+            <div class="list-table">
+              <div class="table-title">
+                <span class="header-index">序列号</span><span class="header-detail">编号</span>
+              </div>
+              <div class="table-content">
+                <div id="list">
+                  <div id="empty">暂无内容</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="right-box">
@@ -136,17 +145,19 @@
         const arr = str.split(',')
         const num = Number(str.split(',').pop().split(':')[0]) + 1
         for (let i = 1; i < num; i++) {
-          const item = document.createElement('li')
+          const item = document.createElement('div')
+          item.className = `box-wrap`
           for (let j = 0; j < arr.length; j++) {
             if (arr[j] && Number(arr[j].split(':')[0]) === i) {
-              item.innerHTML = arr[j]
+              item.innerHTML = `<span class="list-index">${arr[j].split(':')[0]}</span><span class="list-detail">${arr[j].split(':')[1]}</span>`
             }
           }
           if (item.innerHTML === '') {
-            item.innerHTML = `${i}:-`
+            item.innerHTML = `<span class="list-index">${i}</span><span class="list-detail">-</span>`
           }
           fragment.appendChild(item)
         }
+        
         list.appendChild(fragment)
       }
 
@@ -252,7 +263,7 @@
             const data = JSON.parse(res)
             if (data.Message === 'Success') {
               if (data.Data === '') {
-                alert(`图片解析为空，请检查图片后重新进行尝试`)
+                alert(`图片解析结果为空，请检查图片后重新进行尝试`)
                 loading.style.display = 'none'
                 handleReset()
               } else {
@@ -293,7 +304,7 @@
       // 重置事件
       function handleReset() {
         boxImg.setAttribute('src', '')
-        list.innerHTML = ''
+        list.innerHTML = '<div id="empty">暂无内容</div>'
         saveBtn.disabled = ''
         resetBtn.disabled = 'disabled'
         parsingBtn.disabled = 'disabled'
