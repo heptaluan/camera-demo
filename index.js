@@ -16,6 +16,7 @@ const boxImg = document.getElementById('boxImg')
 const list = document.getElementById('list')
 const loading = document.getElementById('loading')
 const upload = document.getElementById('upload')
+const result = document.getElementById('result')
 
 const videoW = document.querySelector('.right-box').offsetWidth
 const videoH = document.querySelector('.right-box').offsetHeight
@@ -98,21 +99,24 @@ const formatData = str => {
   const fragment = document.createDocumentFragment()
   const arr = str.split(',')
   const num = Number(str.split(',').pop().split(':')[0]) + 1
+  let total = 0
   for (let i = 1; i < num; i++) {
     const item = document.createElement('div')
     item.className = `box-wrap`
     for (let j = 0; j < arr.length; j++) {
       if (arr[j] && Number(arr[j].split(':')[0]) === i) {
         item.innerHTML = `<span class="list-index">${arr[j].split(':')[0]}</span><span class="list-detail">${
-          arr[j].split(':')[1]
+          arr[j].split(':')[1] ? arr[j].split(':')[1] : '-'
         }</span>`
+        if (arr[j].split(':')[1]) {
+          total++
+        }
       }
-    }
-    if (item.innerHTML === '') {
-      item.innerHTML = `<span class="list-index">${i}</span><span class="list-detail">-</span>`
     }
     fragment.appendChild(item)
   }
+
+  result.innerHTML = total
 
   list.appendChild(fragment)
 }
@@ -222,6 +226,7 @@ parsingBtn.addEventListener('click', function () {
           alert(`图片解析结果为空，请检查图片后重新进行尝试`)
           loading.style.display = 'none'
           handleReset()
+          result.innerHTML = `0`
         } else {
           formatData(data.Data)
           loading.style.display = 'none'
@@ -266,4 +271,5 @@ function handleReset() {
   parsingBtn.disabled = 'disabled'
   video.style.display = 'block'
   upload.value = ''
+  result.innerHTML = `0`
 }
