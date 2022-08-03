@@ -1,11 +1,11 @@
-
-
 const api = `http://192.168.11.99:5000`
 const getImageUrl = `${api}/getImage`
 const getListUrl = `${api}/getList`
 const updateImageUrl = `${api}/imageprocess`
+const scale = 5
 
 const aVideo = document.getElementById('video')
+const bVideo = document.getElementById('video2')
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
 
@@ -17,14 +17,18 @@ const list = document.getElementById('list')
 const loading = document.getElementById('loading')
 const upload = document.getElementById('upload')
 const result = document.getElementById('result')
+const canvasMask = document.getElementById('canvas-mask')
 
 const videoW = document.querySelector('.right-box').offsetWidth
 const videoH = document.querySelector('.right-box').offsetHeight
 
 aVideo.width = videoW
 aVideo.height = videoH
-canvas.width = videoW
-canvas.height = videoH
+
+canvas.width = videoW * scale
+canvas.height = videoH * scale
+bVideo.width = videoW * scale
+bVideo.height = videoH * scale
 
 initVideoStyle()
 
@@ -38,8 +42,11 @@ function initVideoStyle() {
 
   aVideo.width = videoW
   aVideo.height = videoH
-  canvas.width = videoW
-  canvas.height = videoH
+
+  canvas.width = videoW * scale
+  canvas.height = videoH * scale
+  bVideo.width = videoW * scale
+  bVideo.height = videoH * scale
 }
 
 // chrome://flags/#unsafely-treat-insecure-origin-as-secure
@@ -54,7 +61,7 @@ navigator.getUserMedia =
 // 参数一获取用户打开权限，参数二是一个回调函数，自动传入视屏流，成功后调用，并传一个视频流对象，参数三打开失败后调用，传错误信息
 navigator.getUserMedia(
   {
-    video: { width: 1920, height: 1080 },
+    video: { width: videoW * scale, height: videoH * scale },
   },
   gotStream,
   noStream
@@ -67,6 +74,15 @@ function gotStream(stream) {
   }
   stream.onended = noStream
   aVideo.onloadedmetadata = function () {
+    console.log(`摄像头成功打开`)
+  }
+
+  bVideo.srcObject = stream
+  bVideo.onerror = function () {
+    stream.stop()
+  }
+  stream.onended = noStream
+  bVideo.onloadedmetadata = function () {
     console.log(`摄像头成功打开`)
   }
 }
@@ -180,39 +196,44 @@ const handleLoadFile = e => {
 
 // 拍照
 saveBtn.addEventListener('click', function () {
-  const videoW = document.querySelector('.right-box').offsetWidth
-  const videoH = document.querySelector('.right-box').offsetHeight
-  ctx.drawImage(aVideo, 0, 0, videoW, videoH)
-  const base64 = canvas.toDataURL('image/png')
-  boxImg.setAttribute('src', base64)
+  canvasMask.style.display = 'flex'
+  setTimeout(() => {
+    const videoW = document.getElementById('video2').offsetWidth
+    const videoH = document.getElementById('video2').offsetHeight
+    ctx.drawImage(bVideo, 0, 0, videoW, videoH)
+    const base64 = canvas.toDataURL('image/png')
+    boxImg.setAttribute('src', base64)
 
-  const data = dataUrlToBlob(canvas.toDataURL('image/png', 1))
-  const formData = new FormData()
-  formData.append('image', data)
+    const data = dataUrlToBlob(canvas.toDataURL('image/png', 1))
+    const formData = new FormData()
+    formData.append('image', data)
 
-  const xhr = new XMLHttpRequest()
+    const xhr = new XMLHttpRequest()
 
-  video.style.display = 'none'
+    video.style.display = 'none'
 
-  xhr.open('POST', updateImageUrl, true)
-  xhr.onreadystatechange = function (res) {
-    if (this.readyState === 4) {
-      if (this.status === 200) {
-        const data = JSON.parse(this.response)
-        if (data.Code === '200') {
-          parsingBtn.disabled = ''
-          resetBtn.disabled = ''
-          alert(`拍照上传成功`)
+    xhr.open('POST', updateImageUrl, true)
+    xhr.onreadystatechange = function (res) {
+      if (this.readyState === 4) {
+        if (this.status === 200) {
+          const data = JSON.parse(this.response)
+          if (data.Code === '200') {
+            parsingBtn.disabled = ''
+            resetBtn.disabled = ''
+            alert(`拍照上传成功`)
+            canvasMask.style.display = 'none'
+          }
+        } else {
+          var resJson = { code: this.status, response: this.response }
+          console.log(resJson)
+          handleReset()
+          alert(`拍照上传失败，请刷新后重新尝试`)
+          canvasMask.style.display = 'none'
         }
-      } else {
-        var resJson = { code: this.status, response: this.response }
-        console.log(resJson)
-        handleReset()
-        alert(`拍照上传失败，请刷新后重新尝试`)
       }
     }
-  }
-  xhr.send(formData)
+    xhr.send(formData)
+  }, 0)
 })
 
 // 解析
