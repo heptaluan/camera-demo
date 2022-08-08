@@ -1,4 +1,5 @@
-const api = `http://192.168.11.99:5000`
+// const api = `http://192.168.11.99:5000`
+const api = `http://127.0.0.1:5000`
 const getImageUrl = `${api}/getImage`
 const getListUrl = `${api}/getList`
 const updateImageUrl = `${api}/imageprocess`
@@ -18,6 +19,7 @@ const loading = document.getElementById('loading')
 const upload = document.getElementById('upload')
 const result = document.getElementById('result')
 const canvasMask = document.getElementById('canvas-mask')
+const exportBtn = document.getElementById('exportBtn')
 
 const videoW = document.querySelector('.right-box').offsetWidth
 const videoH = document.querySelector('.right-box').offsetHeight
@@ -51,21 +53,21 @@ function initVideoStyle() {
 
 // chrome://flags/#unsafely-treat-insecure-origin-as-secure
 
-navigator.getUserMedia =
-  navigator.getUserMedia ||
-  navigator.webkitGetUserMedia ||
-  navigator.mozGetUserMedia ||
-  navigator.msGetUserMedia ||
-  navigator.mediaDevices.getUserMedia
+// navigator.getUserMedia =
+//   navigator.getUserMedia ||
+//   navigator.webkitGetUserMedia ||
+//   navigator.mozGetUserMedia ||
+//   navigator.msGetUserMedia ||
+//   navigator.mediaDevices.getUserMedia
 
 // 参数一获取用户打开权限，参数二是一个回调函数，自动传入视屏流，成功后调用，并传一个视频流对象，参数三打开失败后调用，传错误信息
-navigator.getUserMedia(
-  {
-    video: { width: videoW * scale, height: videoH * scale },
-  },
-  gotStream,
-  noStream
-)
+// navigator.getUserMedia(
+//   {
+//     video: { width: 1920, height: 1080 },
+//   },
+//   gotStream,
+//   noStream
+// )
 
 function gotStream(stream) {
   aVideo.srcObject = stream
@@ -176,7 +178,7 @@ const handleLoadFile = e => {
         const data = JSON.parse(this.response)
         if (data.Code === '200') {
           alert(`图片上传成功`)
-          saveBtn.disabled = 'disabled'
+          // saveBtn.disabled = 'disabled'
         }
       } else {
         var resJson = { code: this.status, response: this.response }
@@ -194,47 +196,115 @@ const handleLoadFile = e => {
   upload.value = ''
 }
 
-// 拍照
-saveBtn.addEventListener('click', function () {
-  canvasMask.style.display = 'flex'
-  setTimeout(() => {
-    const videoW = document.getElementById('video2').offsetWidth
-    const videoH = document.getElementById('video2').offsetHeight
-    ctx.drawImage(bVideo, 0, 0, videoW, videoH)
-    const base64 = canvas.toDataURL('image/png')
-    boxImg.setAttribute('src', base64)
+// 导出
+exportBtn.addEventListener('click', function () {
 
-    const data = dataUrlToBlob(canvas.toDataURL('image/png', 1))
-    const formData = new FormData()
-    formData.append('image', data)
+  const exportList = list.querySelectorAll('.box-wrap')
+  const exportData = []
+  console.log(exportList);
 
-    const xhr = new XMLHttpRequest()
-
-    video.style.display = 'none'
-
-    xhr.open('POST', updateImageUrl, true)
-    xhr.onreadystatechange = function (res) {
-      if (this.readyState === 4) {
-        if (this.status === 200) {
-          const data = JSON.parse(this.response)
-          if (data.Code === '200') {
-            parsingBtn.disabled = ''
-            resetBtn.disabled = ''
-            alert(`拍照上传成功`)
-            canvasMask.style.display = 'none'
-          }
-        } else {
-          var resJson = { code: this.status, response: this.response }
-          console.log(resJson)
-          handleReset()
-          alert(`拍照上传失败，请刷新后重新尝试`)
-          canvasMask.style.display = 'none'
-        }
-      }
-    }
-    xhr.send(formData)
-  }, 0)
+  for (let i = 0; i < exportList.length; i++) {
+    const index = exportList[i].querySelector('.list-index').innerHTML
+    const content = exportList[i].querySelector('.list-detail').innerHTML
+    exportData.push({
+      '序列号': index,
+      '编号': content
+    })
+  }
+  
+  const fileName = `解析列表`
+  downloadFile(exportData, fileName)
 })
+
+// 下载文件
+const downloadFile = (data, fileName) => {
+  const sheet = XLSX.utils.json_to_sheet(data)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, sheet, fileName)
+  const workbookBlob = workbook2blob(wb)
+  openDownload(workbookBlob, `${fileName}.csv`)
+}
+
+// 创建 blobUrl，通过 createObjectURL 实现下载
+const openDownload = (blob, fileName) => {
+  if (typeof blob === 'object' && blob instanceof Blob) {
+    blob = URL.createObjectURL(blob)
+  }
+  const aLink = document.createElement('a')
+  aLink.href = blob
+  aLink.download = fileName || ''
+  let event
+  if (window.MouseEvent) event = new MouseEvent('click')
+  else {
+    event = document.createEvent('MouseEvents')
+    event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+  }
+  aLink.dispatchEvent(event)
+}
+
+// 将 workbook 转化为 blob 对象
+const workbook2blob = workbook => {
+  const wopts = {
+    bookType: 'csv',
+    bookSST: false,
+    type: 'binary',
+  }
+  const wbout = XLSX.write(workbook, wopts)
+  const blob = new Blob([s2ab(wbout)], {
+    type: 'application/octet-stream',
+  })
+  return blob
+}
+
+// 将字符串转ArrayBuffer
+const s2ab = s => {
+  const buf = new ArrayBuffer(s.length)
+  const view = new Uint8Array(buf)
+  for (let i = 0; i !== s.length; ++i) view[i] = s.charCodeAt(i) & 0xff
+  return buf
+}
+
+// 拍照
+// saveBtn.addEventListener('click', function () {
+//   canvasMask.style.display = 'flex'
+//   setTimeout(() => {
+//     const videoW = document.getElementById('video2').offsetWidth
+//     const videoH = document.getElementById('video2').offsetHeight
+//     ctx.drawImage(bVideo, 0, 0, videoW, videoH)
+//     const base64 = canvas.toDataURL('image/png')
+//     boxImg.setAttribute('src', base64)
+
+//     const data = dataUrlToBlob(canvas.toDataURL('image/png', 1))
+//     const formData = new FormData()
+//     formData.append('image', data)
+
+//     const xhr = new XMLHttpRequest()
+
+//     video.style.display = 'none'
+
+//     xhr.open('POST', updateImageUrl, true)
+//     xhr.onreadystatechange = function (res) {
+//       if (this.readyState === 4) {
+//         if (this.status === 200) {
+//           const data = JSON.parse(this.response)
+//           if (data.Code === '200') {
+//             parsingBtn.disabled = ''
+//             resetBtn.disabled = ''
+//             alert(`拍照上传成功`)
+//             canvasMask.style.display = 'none'
+//           }
+//         } else {
+//           var resJson = { code: this.status, response: this.response }
+//           console.log(resJson)
+//           handleReset()
+//           alert(`拍照上传失败，请刷新后重新尝试`)
+//           canvasMask.style.display = 'none'
+//         }
+//       }
+//     }
+//     xhr.send(formData)
+//   }, 0)
+// })
 
 // 解析
 parsingBtn.addEventListener('click', function () {
@@ -257,6 +327,7 @@ parsingBtn.addEventListener('click', function () {
           boxImg.setAttribute('src', `${api}/${data.image}`)
           parsingBtn.disabled = ''
           resetBtn.disabled = ''
+          exportBtn.disabled = ''
         }
       } else {
         alert(`图片解析失败，请重新尝试`)
@@ -287,9 +358,10 @@ function dataUrlToBlob(base64, mimeType = 'image/png') {
 function handleReset() {
   boxImg.setAttribute('src', '')
   list.innerHTML = '<div id="empty">暂无内容</div>'
-  saveBtn.disabled = ''
+  // saveBtn.disabled = ''
   resetBtn.disabled = 'disabled'
   parsingBtn.disabled = 'disabled'
+  exportBtn.disabled = 'disabled'
   video.style.display = 'block'
   upload.value = ''
   result.innerHTML = `0`
