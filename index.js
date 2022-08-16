@@ -131,7 +131,7 @@ const formatData = str => {
       if (arr[j] && Number(arr[j].split(':')[0]) === i) {
         item.innerHTML = `<span class="list-index">${arr[j].split(':')[0]}</span><span class="list-detail">${
           arr[j].split(':')[1] ? arr[j].split(':')[1] : '-'
-        }</span>`
+        }</span><span class="list-code">${formatCode(Number(arr[j].split(':')[0]))}</span>`
         if (arr[j].split(':')[1]) {
           total++
         }
@@ -151,10 +151,38 @@ const formatSearchData = arr => {
   for (let i = 0; i < arr.length; i++) {
     const item = document.createElement('div')
     item.className = `box-wrap`
-    item.innerHTML = `<span class="list-index">${arr[i].split(':')[0]}</span><span class="list-detail">${arr[i].split(':')[1]}</span>`
+    item.innerHTML = `<span class="list-index">${arr[i].split(':')[0]}</span><span class="list-detail">${arr[i].split(':')[1]}</span><span class="list-code">${formatCode(Number(arr[i].split(':')[0]))}</span>`
     fragment.appendChild(item)
   }
   list.appendChild(fragment)
+}
+
+const formatCode = num => {
+  if (num <= 10) {
+    return num % 10 === 0 ? `A1${num % 10}` : `A${num % 10}`
+  } else if (num > 10 && num <= 20) {
+    return getCodeType(num, `B`)
+  } else if (num > 20 && num <= 30) {
+    return getCodeType(num, `C`)
+  } else if (num > 30 && num <= 40) {
+    return getCodeType(num, `D`)
+  } else if (num > 40 && num <= 50) {
+    return getCodeType(num, `E`)
+  } else if (num > 50 && num <= 60) {
+    return getCodeType(num, `F`)
+  } else if (num > 60 && num <= 70) {
+    return getCodeType(num, `G`)
+  } else if (num > 70 && num <= 80) {
+    return getCodeType(num, `H`)
+  } else if (num > 80 && num <= 90) {
+    return getCodeType(num, `I`)
+  } else if (num > 90) {
+    return getCodeType(num, `J`)
+  }
+}
+
+const getCodeType = (num, type) => {
+  return num % 10 === 0 ? `${type}1${num % 10}` : `${type}${num % 10}`
 }
 
 const getJSON = url => {
