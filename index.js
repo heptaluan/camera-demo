@@ -1,5 +1,5 @@
-// const api = `http://192.168.11.99:5000`
-const api = `http://127.0.0.1:5000`
+const api = `http://192.168.11.99:5000`
+// const api = `http://127.0.0.1:5000`
 const getImageUrl = `${api}/getImage`
 const getListUrl = `${api}/getList`
 const updateImageUrl = `${api}/imageprocess`
@@ -23,6 +23,12 @@ const exportBtn = document.getElementById('exportBtn')
 
 const videoW = document.querySelector('.right-box').offsetWidth
 const videoH = document.querySelector('.right-box').offsetHeight
+
+const searchInput = document.getElementById('search-input')
+const searchBtn = document.getElementById('search-btn')
+const searchReset = document.getElementById('search-reset')
+
+let dataListCatch = ''
 
 aVideo.width = videoW
 aVideo.height = videoH
@@ -139,6 +145,18 @@ const formatData = str => {
   list.appendChild(fragment)
 }
 
+const formatSearchData = arr => {
+  list.innerHTML = ''
+  const fragment = document.createDocumentFragment()
+  for (let i = 0; i < arr.length; i++) {
+    const item = document.createElement('div')
+    item.className = `box-wrap`
+    item.innerHTML = `<span class="list-index">${arr[i].split(':')[0]}</span><span class="list-detail">${arr[i].split(':')[1]}</span>`
+    fragment.appendChild(item)
+  }
+  list.appendChild(fragment)
+}
+
 const getJSON = url => {
   return new Promise((resolve, reject) => {
     var xhr = new XMLHttpRequest()
@@ -198,20 +216,19 @@ const handleLoadFile = e => {
 
 // 导出
 exportBtn.addEventListener('click', function () {
-
   const exportList = list.querySelectorAll('.box-wrap')
   const exportData = []
-  console.log(exportList);
+  console.log(exportList)
 
   for (let i = 0; i < exportList.length; i++) {
     const index = exportList[i].querySelector('.list-index').innerHTML
     const content = exportList[i].querySelector('.list-detail').innerHTML
     exportData.push({
-      '序列号': index,
-      '编号': content
+      序列号: index,
+      编号: content,
     })
   }
-  
+
   const fileName = `解析列表`
   downloadFile(exportData, fileName)
 })
@@ -319,6 +336,7 @@ parsingBtn.addEventListener('click', function () {
           handleReset()
           result.innerHTML = `0`
         } else {
+          dataListCatch = data.Data
           formatData(data.Data)
           loading.style.display = 'none'
           resetBtn.disabled = ''
@@ -365,4 +383,44 @@ function handleReset() {
   video.style.display = 'block'
   upload.value = ''
   result.innerHTML = `0`
+  searchInput.value = ''
+}
+
+// const data =
+//   '1:AF28WWX33M-S4,2:AFKBHRRUF8-S4,3:ADEFALX2FM-S4,4:ACUCPS5843-S4,5:AER93G8FQ7-S4,6:ADFJ4HBK95-S4,7:,8:AK6JDTR6JW-S4,9:AKH46DCQ7L-S4,10:AJLFSYWC7C-S4,11:AJ84PYPJ8U-S4,12:APMQRMCTNB-S4,13:AC8CVNCSY4-S4,14:AC6VTGUEWF-S4,15:AP385M2M95-S4,16:APHDK4UNHD-S4,17:APBWJNYXJX-S4,18:APD2CKDHCF-S4,19:APE56FR35W-S4,20:AC3METQSJY-S4,21:AP6GJA69LK-S4,22:AC5FRBD2UT-S4,23:AP659Y2ECD-S4,24:AP9QWW9UXY-S4,25:ACMFJ9TBFV-S4,26:APGAR8H5PV-S4,27:APF7XC5KWE-S4,28:ADU9FSN8T3-S4,29:AG3KR5YHBD-S4,30:AERXL3G6LS-S4,31:A9HRNXFAS5-S4,32:AAK5H6GP8G-S4,33:AA62UK27QN-S4,34:AAA2SSDHMF-S4,35:AAGWVDQLMH-S3,36:AAFU4HD3U2-S3,37:AAJ2PA56EY-S4,38:AKCPWTUK8C-S3,39:ALL9B32D5F-S3,40:AJBD5MT6RY-S3,41:AKQCH9TNMH-S3,42:AK9FJ7QWTV-S3,43:ALFV4HJ7XH-S3,44:AJQFR9AN9S-S3,45:AL5CBXWMBT-S3,46:AM5LCALGXP-S3,47:AK8CQBDE3E-S3,48:ALGLE9LKHA-S3,49:AK675JMBGF-S3,50:AJHVWX3EHV-S3,51:AJVJHD2HX3-S3,52:ALTUW8M6MT-S3,53:AHYW6YL5WS-S3,54:,55:AJFQC7BBUN-S4,56:AKHSNXLETC-S4,57:AJLFSYWCAR-S4,58:AMCUP74F6N-S4,59:ALPHPP5YEM-S4,60:AL63UK7BRV-S4,61:AKRFB688CQ-S4,62:AK39Y7MJAV-S4,63:AL7V82SK4P-S4,64:AJRJK5N7Y2-S4,65:AL36Q87JNL-S4,66:AK3YHRV8T8-S4,67:AM33G8QK3B-S4,68:ALTHMWHBBE-S4,69:ALASCDSC7Y-S4,70:AKV3Y4FNX9-S4,71:AJDVYPP4HR-S4,72:ALESAM6N3N-S4,73:AKWVBK3WA3-S4,74:AKTY78466R-S4,75:AJMJLVAV36-S4,76:AKFM47UC8A-S4,77:AL3V9SF96T-S4,78:AL4Y3NSRXB-S4,79:AJBQDWWYWS-S4,80:ALWS38SSK3-S4,81:AJWA2XA8D2-S4,82:AM2P7KSKNC-S4,83:AKD47S7XWC-S4,84:AG65M7UDBY-S4,85:AGA5KF8P8R-S4,86:AFU2WTR7QX-S4,87:AHAQU32E5S-S4,88:AFVH229KSL-S4,89:AMTRKB97N6-S4,90:AN2X5BCL5V-S4,91:ANL2P67EHG-S4,92:AC2VV9GWKC-S4,93:,94:,95:,96:,97:,98:AKX9GNNFL4-S4,99:AJ9JNYNLEP-S4,100:'
+
+// formatData(data)
+
+// 编号列表搜索
+searchBtn.addEventListener('click', function () {
+  if (!dataListCatch) {
+    return false
+  }
+  const arr = fuzzyQuery(dataListCatch.split(','), searchInput.value.trim())
+  console.log(arr)
+  if (arr.length > 0) {
+    formatSearchData(arr)
+  } else {
+    list.innerHTML = '<div id="empty">查询不到编号内容，请重置查询条件后重新尝试</div>'
+  }
+})
+
+// 编号列表重置
+searchReset.addEventListener('click', function () {
+  searchInput.value = ''
+  if (!dataListCatch) {
+    return false
+  }
+  formatData(dataListCatch)
+})
+
+// 模糊查询
+function fuzzyQuery(list, keyWord) {
+  var arr = []
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].indexOf(keyWord.toUpperCase()) >= 0) {
+      arr.push(list[i])
+    }
+  }
+  return arr
 }
